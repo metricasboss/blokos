@@ -48,10 +48,11 @@ export function generateSkill(
     }
 
     // Examples
-    if (comp.examples.length > 0) {
+    if (comp.examples && comp.examples.length > 0) {
       lines.push('**Examples:**')
       lines.push('')
       for (const example of comp.examples) {
+        if (!example.props) continue
         lines.push(`*${example.description}:*`)
         lines.push('```tsx')
         lines.push(buildExampleJsx(comp.name, example.props))

@@ -13,9 +13,11 @@ export async function parseZodSchema(
   const absolutePath = path.resolve(schemaFilePath)
   const source = await fs.readFile(absolutePath, 'utf-8')
 
-  // Strip import statements and extract the schema definition
+  // Strip import statements, type declarations, and export keywords
   const stripped = source
     .replace(/^import\s+.*$/gm, '')
+    .replace(/^export\s+type\s+.*$/gm, '')
+    .replace(/^type\s+\w+\s*=.*$/gm, '')
     .replace(/^export\s+/gm, '')
     .trim()
 
