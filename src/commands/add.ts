@@ -163,18 +163,17 @@ export const addCommand = new Command('add')
       }
     }
 
-    // Install theme tokens if available
+    // Install theme tokens directly into globals.css
     let themeInstalled = false
     for (const t of themes) {
-      const tokensPath = path.join(cwd, 'app', 'tokens.css')
-      const alreadyInstalled = await fs.pathExists(tokensPath)
+      const globalsPath = path.join(cwd, 'app', 'globals.css')
 
-      if (!alreadyInstalled || options?.force) {
-        spinner.text = 'Installing theme tokens...'
+      if (!(await fs.pathExists(globalsPath)) || options?.force) {
+        spinner.text = 'Installing theme...'
         try {
           const cssContent = await fetchComponentFile(t.registryUrl, t.theme.cssFile, t.token)
           await fs.ensureDir(path.join(cwd, 'app'))
-          await fs.writeFile(tokensPath, cssContent)
+          await fs.writeFile(globalsPath, cssContent)
           themeInstalled = true
         } catch (err) {
           console.warn(`  Warning: could not fetch theme: ${err}`)
@@ -194,6 +193,6 @@ export const addCommand = new Command('add')
     console.log(`  Output: ${chalk.green(config.outputDir)}`)
     console.log(`  Skill updated in ${chalk.green('.claude/skills/')}`)
     if (themeInstalled) {
-      console.log(`  Theme: ${chalk.green('app/tokens.css')} — add ${chalk.cyan('@import "./tokens.css"')} to your globals.css`)
+      console.log(`  Theme: ${chalk.green('app/globals.css')} — design tokens installed`)
     }
   })
