@@ -1,7 +1,7 @@
 import path from 'node:path'
 import fs from 'fs-extra'
-import type { BlokosConfig, ComponentMeta, RegistryJson, RegistryComponent } from './types.js'
-import { COMPONENTS_DIR, META_FILE, SCHEMA_FILE, CONFIG_FILE } from './constants.js'
+import type { BlokosConfig, ComponentMeta, RegistryJson, RegistryComponent, RegistryTheme } from './types.js'
+import { COMPONENTS_DIR, META_FILE, SCHEMA_FILE, CONFIG_FILE, THEME_DIR, THEME_CSS_FILE } from './constants.js'
 import { parseZodSchema } from './schema-parser.js'
 
 export async function loadConfig(cwd: string): Promise<BlokosConfig> {
@@ -77,11 +77,28 @@ export async function buildRegistry(cwd: string): Promise<RegistryJson> {
     }
   }
 
+  // Check for theme
+  let theme: RegistryTheme | undefined
+  const themeCssPath = path.join(cwd, THEME_DIR, THEME_CSS_FILE)
+  if (await fs.pathExists(themeCssPath)) {
+    const themeMetaPath = path.join(cwd, THEME_DIR, 'meta.json')
+    let themeMeta: { fonts?: string[]; description?: string } = {}
+    if (await fs.pathExists(themeMetaPath)) {
+      themeMeta = await fs.readJson(themeMetaPath)
+    }
+    theme = {
+      cssFile: `${THEME_DIR}/${THEME_CSS_FILE}`,
+      fonts: themeMeta.fonts,
+      description: themeMeta.description,
+    }
+  }
+
   return {
     name: config.name,
     version: '1.0.0',
     description: config.description,
     framework: config.framework,
     components,
+    ...(theme && { theme }),
   }
 }

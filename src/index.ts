@@ -3,6 +3,7 @@ export type {
   ComponentMeta,
   RegistryJson,
   RegistryComponent,
+  RegistryTheme,
   ConsumerConfig,
   RegistryEntry,
   InstalledComponent,

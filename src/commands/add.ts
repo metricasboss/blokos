@@ -44,9 +44,16 @@ export const addCommand = new Command('add')
 
     const spinner = ora('Fetching registry...').start()
 
-    // Collect all components from all registries
+    // Collect all components and themes from all registries
     const allComponents: Array<{
       component: RegistryComponent
+      registryName: string
+      registryUrl: string
+      token?: string
+    }> = []
+
+    const themes: Array<{
+      theme: { cssFile: string; fonts?: string[]; description?: string }
       registryName: string
       registryUrl: string
       token?: string
@@ -58,6 +65,14 @@ export const addCommand = new Command('add')
         for (const comp of Object.values(registry.components)) {
           allComponents.push({
             component: comp,
+            registryName: reg.name,
+            registryUrl: reg.url,
+            token: reg.token,
+          })
+        }
+        if (registry.theme) {
+          themes.push({
+            theme: registry.theme,
             registryName: reg.name,
             registryUrl: reg.url,
             token: reg.token,
@@ -148,6 +163,25 @@ export const addCommand = new Command('add')
       }
     }
 
+    // Install theme tokens if available
+    let themeInstalled = false
+    for (const t of themes) {
+      const tokensPath = path.join(cwd, 'app', 'tokens.css')
+      const alreadyInstalled = await fs.pathExists(tokensPath)
+
+      if (!alreadyInstalled || options?.force) {
+        spinner.text = 'Installing theme tokens...'
+        try {
+          const cssContent = await fetchComponentFile(t.registryUrl, t.theme.cssFile, t.token)
+          await fs.ensureDir(path.join(cwd, 'app'))
+          await fs.writeFile(tokensPath, cssContent)
+          themeInstalled = true
+        } catch (err) {
+          console.warn(`  Warning: could not fetch theme: ${err}`)
+        }
+      }
+    }
+
     await saveConsumerConfig(cwd, config)
 
     // Update local skill
@@ -159,4 +193,7 @@ export const addCommand = new Command('add')
     console.log('')
     console.log(`  Output: ${chalk.green(config.outputDir)}`)
     console.log(`  Skill updated in ${chalk.green('.claude/skills/')}`)
+    if (themeInstalled) {
+      console.log(`  Theme: ${chalk.green('app/tokens.css')} — add ${chalk.cyan('@import "./tokens.css"')} to your globals.css`)
+    }
   })

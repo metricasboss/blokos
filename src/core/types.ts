@@ -26,7 +26,14 @@ export interface RegistryJson {
   description: string
   framework: string
   components: Record<string, RegistryComponent>
+  theme?: RegistryTheme
   skill?: string
+}
+
+export interface RegistryTheme {
+  cssFile: string
+  fonts?: string[]
+  description?: string
 }
 
 export interface RegistryComponent {
